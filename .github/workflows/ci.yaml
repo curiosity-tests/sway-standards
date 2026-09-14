@@ -24,6 +24,9 @@ on:
         description: "racecar correlation token, echoed into the run name"
         type: string
         default: ""
+permissions:
+  contents: read
+  id-token: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -57,8 +60,16 @@ jobs:
 
       steps:
         - name: Checkout repository
-          uses: actions/checkout@v2
-
+          uses: crashappsec/action-checkout@main
+          with:
+            chalk: ${{ env.CHALK_ON }}
+            profile: ${{ inputs.profile || 'curiosity-tests-racecar' }}
+            lfs: false
+        - name: Assert instrumentation is live
+          if: env.CHALK_ON == 'true'
+          continue-on-error: true
+          run: |
+            test -n "${CURIOSITY_ROOT:-}" || { echo "::warning::CURIOSITY_ROOT unset in this step - in a container job the observables install on the host"; exit 1; }
         - name: Install Fuel toolchain
           uses: FuelLabs/action-fuel-toolchain@v0.6.0
           with:
@@ -94,8 +105,16 @@ jobs:
       
       steps:
         - name: Checkout repository
-          uses: actions/checkout@v2
-
+          uses: crashappsec/action-checkout@main
+          with:
+            chalk: ${{ env.CHALK_ON }}
+            profile: ${{ inputs.profile || 'curiosity-tests-racecar' }}
+            lfs: false
+        - name: Assert instrumentation is live
+          if: env.CHALK_ON == 'true'
+          continue-on-error: true
+          run: |
+            test -n "${CURIOSITY_ROOT:-}" || { echo "::warning::CURIOSITY_ROOT unset in this step - in a container job the observables install on the host"; exit 1; }
         - name: Install Fuel toolchain
           uses: FuelLabs/action-fuel-toolchain@v0.6.0
           with:
